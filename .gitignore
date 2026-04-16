@@ -1,0 +1,9 @@
+practice
+overall plan.*
+ai-core.*
+ai-core_files
+overall plan_files
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
