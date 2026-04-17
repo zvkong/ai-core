@@ -1,5 +1,5 @@
 from src.z2h.micrograd_pytorch.value import Value
-
+import math
 def numerical_grad_1d(fn, x, h=1e-6):
     out = (fn(x + h) - fn(x - h))/(2*h)
     return out
