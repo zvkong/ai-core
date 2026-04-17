@@ -7,3 +7,4 @@ overall plan_files
 __pycache__/
 *.py[cod]
 .pytest_cache/
+example.ipynb
