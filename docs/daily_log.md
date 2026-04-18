@@ -1,4 +1,3 @@
-````md
 # Day 1 Summary — Deep Learning Intensive Plan
 
 ## Date
@@ -80,7 +79,7 @@ Completed:
 - Successfully ran:
   ```bash
   make test
-````
+  ```
 
 ### 4. Algorithm practice
 
@@ -246,7 +245,7 @@ For Day 1, the key target was:
 .PHONY: test
 
 test:
-	PYTHONPATH=. pytest -v tests/
+  PYTHONPATH=. pytest -v tests/
 ```
 
 This allowed testing via:
@@ -485,5 +484,403 @@ Day 1 successfully moved from:
   to
 * building a minimal Python/PyTorch engineering workflow with testing, imports, reproducibility control, and a correct first algorithm implementation.
 
-```
-```
+
+# Day 2 Summary — Deep Learning Intensive Plan
+## Objective for Today
+The main goal today was to move from “understanding reverse-mode AD” to “implementing a minimal scalar autograd engine by hand,” and then verifying its gradients with tests.
+
+## Learning Resources Used Today
+
+**Karpathy, The spelled-out intro to neural networks and backpropagation: building micrograd**
+Main focus:
+* scalar computational graph
+* local derivatives
+* reverse-mode autodiff
+* topological order for backward pass
+
+**Optimization_Jan31.pdf**
+Main reading: Section 2, Automatic Differentiation
+Main topics:
+* symbolic differentiation
+* numerical differentiation
+* automatic differentiation
+* forward mode vs reverse mode
+* computation graph / evaluation trace
+* adjoints and the relation to backprop
+
+**LeetCode**
+* 217. Contains Duplicate
+* Link: https://leetcode.com/problems/contains-duplicate/
+
+---
+
+## What Was Completed Today
+
+### 1. Learned the core concepts of Automatic Differentiation
+Completed the conceptual study of reverse-mode AD, including:
+* what a computation graph is
+* what a local derivative is
+* why backprop is essentially reverse-mode AD
+* why forward mode is inefficient for large-parameter neural networks
+* why reverse mode is efficient for scalar loss
+* what an adjoint / sensitivity means
+
+Key conceptual clarifications today:
+* automatic differentiation is not a finite-difference approximation; it propagates derivatives exactly through the chain rule (up to machine precision)
+* backprop propagates gradients backward from the final loss to the parameters
+* if one node influences the output through multiple paths, gradient contributions must be accumulated, not overwritten
+
+### 2. Implemented the minimal Value class
+Implemented the basic structure of a minimal scalar autograd engine in `src/z2h/micrograd_pytorch/value.py`.
+The current `Value` class includes:
+* `data`
+* `grad`
+* `_prev`
+* `_backward`
+* `_op`
+* `label`
+* `__repr__`
+
+This means each scalar node in the computation graph now stores:
+* its current value
+* its gradient
+* its parent nodes
+* the local backward rule for sending gradients to parents
+
+### 3. Implemented local operations and backward propagation
+Implemented and corrected the following operations and their local backward logic:
+* `__add__`
+* `__mul__`
+* `__neg__`
+* `__sub__`
+* `__pow__` (scalar power)
+* `tanh()`
+* `exp()`
+* `__rmul__`
+* `__truediv__` (basic usable version for the current stage)
+
+Also implemented:
+* `backward()`
+* topological traversal of the computation graph
+* gradient propagation over reverse topological order
+
+The most important engineering insight today was:
+* `out.grad` is the starting point for local backward propagation
+* every local backward rule must multiply by `out.grad`
+* gradients must be accumulated with `+=`, because one node may receive contributions from multiple paths
+
+### 4. Ran manual sanity checks
+Completed and passed manual sanity checks for:
+
+* **Addition:**
+  `c = a + b`
+  verified:
+  `a.grad = 1.0`
+  `b.grad = 1.0`
+* **Multiplication:**
+  `c = a * b`
+  verified:
+  `a.grad = b.data`
+  `b.grad = a.data`
+* **Negation:**
+  `b = -a`
+  verified:
+  `a.grad = -1.0`
+* **Subtraction:**
+  `c = a - b`
+  verified:
+  `a.grad = 1.0`
+  `b.grad = -1.0`
+* **Power:**
+  `b = a ** 2`
+  verified:
+  `a.grad = 2a`
+* **tanh():**
+  verified:
+  `a.grad = 1 - tanh(a)^2`
+
+These checks confirmed that the minimal backward mechanism is behaving correctly.
+
+### 5. Wrote finite-difference gradient checks
+Implemented finite-difference helper functions in `tests/test_micrograd.py`:
+* `numerical_grad_1d`
+* `numerical_grad_2d_x`
+* `numerical_grad_2d_y`
+
+Used them to validate the gradients from the autograd engine.
+Completed tests:
+* `test_backward_populates_grad`
+* `test_grad_quadratic` (f(x)=x^2+2x+1)
+* `test_grad_bilinear` (f(x,y)=xy+x+y)
+* `test_grad_tanh_composite` (f(x)=\tanh(x^2+3x))
+
+Test result:
+* all tests in `test_micrograd.py` passed
+* together with Day 1 `test_repro.py`, total: 7 passed
+
+This shows:
+* the current micrograd gradients agree with finite differences
+* Day 2 work did not break the Day 1 project structure
+
+### 6. Built a notebook demo
+Completed a minimal demo in `notebooks/day02_micrograd.ipynb`:
+* built a small graph:
+  * `a`
+  * `b`
+  * `c = a * b`
+  * `d = c + a`
+  * `e = d.tanh()`
+* printed forward data
+* called `backward()`
+* printed the gradients of the nodes
+
+A very important phenomenon observed in the notebook:
+* when `d = 8`, `tanh(8)` is extremely close to 1
+* therefore `1 - tanh^2(8)` is extremely close to 0
+* so the gradients become very small
+
+This means:
+* the output is reasonable
+* this is not a bug, but the saturation behavior of tanh
+
+### 7. Completed LeetCode
+Completed today’s LeetCode problem:
+* 217. Contains Duplicate
+
+Method used:
+* hash set
+
+Complexity:
+* Time: O(n)
+* Space: O(n)
+
+The current solution is correct.
+
+---
+
+## Most Important Understandings Today
+* AD is not a finite-difference approximation
+* reverse-mode AD is the abstract form of backprop
+* gradients must be accumulated
+* `out.grad` is the key quantity in local backward rules
+* backward execution must follow reverse topological order
+* finite difference is a validation tool, not the actual differentiation mechanism used in training
+* tanh can saturate and produce very small gradients at large inputs
+
+## Main Files Created or Updated Today
+* `src/z2h/micrograd_pytorch/value.py`
+* `tests/test_micrograd.py`
+* `notebooks/day02_micrograd.ipynb`
+* `src/leetcode/day02_contains_duplicate.py`
+
+## Current Status
+The core Day 2 learning and implementation tasks are complete, including:
+* AD theory understanding
+* minimal autograd engine
+* backward mechanism
+* finite-difference tests
+* notebook demo
+* LeetCode
+
+If the final cleanup is still pending, the only remaining items are:
+* update `docs/daily_log.md`
+* make the git commit
+
+Recommended commit message:
+`day02: micrograd scalar autograd + tests`
+
+# Day 3 Summary — Deep Learning Intensive Plan
+
+## Objective for Today
+The main goal today was to use one concrete function to compare evaluation trace, forward-mode AD, reverse-mode AD, and PyTorch autograd, so that manual differentiation and software autodiff could be connected clearly.
+
+## Learning Resources Used Today
+
+**Karpathy, The spelled-out intro to neural networks and backpropagation: building micrograd**  
+Main focus:
+* whole-expression-graph backward
+* bug caused by node reuse
+* why gradients must accumulate
+* decomposing complex ops like `tanh`
+* correspondence between micrograd and PyTorch autograd
+* how autodiff connects to loss, parameter collection, and gradient descent
+* how scalar-node autodiff grows into an MLP abstraction
+
+**Homework_1_Sp23.pdf**  
+Main reading: Problem 3  
+Main topics:
+* 2-dimensional Rosenbrock function
+* evaluation trace
+* manual forward-mode AD
+* manual reverse-mode AD
+* comparing manual derivatives with PyTorch autograd
+
+Main function studied:
+\[
+f(x_1, x_2)=100(x_2-x_1^2)^2+(1-x_1)^2
+\]
+evaluated at
+\[
+(x_1,x_2)=(0,0)
+\]
+
+**LeetCode**
+* 242. Valid Anagram
+* Link: https://leetcode.com/problems/valid-anagram/
+
+---
+
+## What Was Completed Today
+
+### 1. Recalibrated the true focus of the later Z2H micrograd segment
+Instead of repeating Day 2 topics, I identified the actual new emphasis in the later part of the video:
+* whole-graph backward rather than only local node rules
+* the concrete bug that appears when one node is reused multiple times
+* why gradient accumulation is required
+* how a complex operation like `tanh` can still be decomposed into elementary steps
+* how micrograd corresponds conceptually to PyTorch autograd
+* how autodiff connects to training through loss, parameter collection, and gradient descent
+* how scalar-node logic scales into neuron, layer, and MLP abstractions
+
+### 2. Answered conceptual questions from the video
+Clarified:
+* the difference between one node’s `_backward()` and full-graph `backward()`
+* why reused nodes force gradient accumulation
+* why a complex function can still fit into the same autodiff framework
+* how `Value.data`, `Value.grad`, `_prev`, and `_backward` correspond to PyTorch ideas
+* why loss function, parameter collection, and gradient descent form the bridge from differentiation to training
+* why moving from `Value` to MLP mainly adds software abstraction and parameter organization, not new calculus
+
+### 3. Worked through Homework 1 Problem 3
+For the Rosenbrock function at \((0,0)\), determined:
+* function value:
+  \[
+  f(0,0)=1
+  \]
+* target gradients:
+  \[
+  \frac{\partial f}{\partial x_1}(0,0)=-2,\qquad
+  \frac{\partial f}{\partial x_2}(0,0)=0
+  \]
+
+### 4. Built the evaluation trace
+Decomposed the function into intermediate variables suitable for manual AD tracing:
+\[
+v_1=x_1,\quad
+v_2=x_2,\quad
+v_3=v_1^2,\quad
+v_4=1-v_1,\quad
+v_5=v_4^2,
+\]
+\[
+v_6=v_2-v_3,\quad
+v_7=v_6^2,\quad
+v_8=100v_7,\quad
+v_9=v_8+v_5
+\]
+
+with \(v_9=f(x_1,x_2)\).
+
+This made it possible to run both forward-mode and reverse-mode on the same trace.
+
+### 5. Performed manual forward-mode AD
+Manually propagated derivative traces for both directions:
+* with respect to \(x_1\)
+* with respect to \(x_2\)
+
+Final result:
+\[
+\frac{\partial y}{\partial x_1}=-2,\qquad
+\frac{\partial y}{\partial x_2}=0
+\]
+
+This confirmed that the forward derivative trace was set up correctly.
+
+### 6. Performed manual reverse-mode AD
+Manually propagated adjoints backward through the same evaluation trace.
+
+Final result:
+\[
+\frac{\partial y}{\partial x_1}=-2,\qquad
+\frac{\partial y}{\partial x_2}=0
+\]
+
+This matched the forward-mode result exactly, showing that both manual AD approaches were consistent on the same traced function.
+
+### 7. Verified the result using PyTorch autograd
+In the notebook, defined the same Rosenbrock function in PyTorch at \((0,0)\), called `.backward()`, and verified:
+* function value = `1.0`
+* `x1.grad = -2.0`
+* `x2.grad = 0.0`
+
+This confirmed that:
+* manual forward-mode AD
+* manual reverse-mode AD
+* PyTorch autograd
+
+all agreed exactly.
+
+### 8. Built the Day 3 notebook
+Completed the main body of:
+* `notebooks/day03_ad_traces.ipynb`
+
+The notebook now includes:
+* the Rosenbrock evaluation trace
+* manual forward-mode AD
+* manual reverse-mode AD
+* PyTorch verification
+
+This means the Day 3 notebook is no longer only conceptual; it now contains a full numerical comparison pipeline.
+
+### 9. Completed LeetCode
+Completed today’s LeetCode problem:
+* 242. Valid Anagram
+
+Final approach used:
+* one dictionary
+* increment counts for `s`
+* decrement counts for `t`
+* verify all counts return to zero
+
+Complexity:
+* Time: `O(n)`
+* Space: `O(k)` or, more conservatively, `O(n)`
+
+The current solution is correct and cleaner than the original two-dictionary version.
+
+---
+
+## Most Important Understandings Today
+* forward-mode and reverse-mode can be compared cleanly on the same evaluation trace
+* reverse-mode AD is closer to backprop because it starts from a scalar output and propagates sensitivities backward
+* gradient accumulation is not a coding trick; it is required because one node may influence the output through multiple downstream paths
+* PyTorch autograd is not conceptually different from micrograd; it is a larger-scale engineering implementation of the same mechanism
+* moving from `Value` to MLP mainly adds abstraction layers:
+  * neuron
+  * layer
+  * model
+  * parameter collection
+  * training loop
+* one concrete traced function is enough to make the relationship between symbolic structure, manual AD, and software autodiff much clearer
+
+## Main Files Created or Updated Today
+* `notebooks/day03_ad_traces.ipynb`
+* `src/leetcode/day03_valid_anagram.py`
+* `docs/daily_log.md`
+
+## Current Status
+The core Day 3 learning and implementation tasks are complete, including:
+* video study
+* Homework 1 Problem 3
+* evaluation trace
+* manual forward-mode AD
+* manual reverse-mode AD
+* PyTorch verification
+* LeetCode 242
+
+If final cleanup is still pending, the only remaining items are:
+* confirm `docs/daily_log.md` is saved
+* make the git commit
+
+Recommended commit message:
+`day03: forward+reverse mode ad trace + verification`
