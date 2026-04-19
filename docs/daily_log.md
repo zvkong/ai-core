@@ -884,3 +884,223 @@ If final cleanup is still pending, the only remaining items are:
 
 Recommended commit message:
 `day03: forward+reverse mode ad trace + verification`
+
+# Day 4 Summary — Deep Learning Intensive Plan
+
+## Objective for Today
+The main goal today was to connect the optimization material from STAT-9340 Homework 1 Problem 1 with actual implementation by hand: loading the dataset, defining the nonlinear model, deriving gradients manually, implementing SGD and SGD with momentum, and comparing their behavior on both synthetic and real data.
+
+## Learning Resources Used Today
+
+**Karpathy, The spelled-out intro to language modeling: building makemore**  
+Link: https://youtu.be/PaCmpygFfXo
+
+Main focus today:
+* `00:00:00–00:24:02`
+  * intro
+  * reading and exploring the dataset
+  * exploring the bigrams in the dataset
+  * counting bigrams in a python dictionary
+  * counting bigrams in a 2D torch tensor
+  * visualizing the bigram tensor
+  * token cleanup and sampling intuition
+* `00:36:17–01:00:50`
+  * vectorized normalization
+  * tensor broadcasting
+  * negative log likelihood loss
+  * model smoothing with fake counts
+
+Main topics:
+* bigram counting as a probabilistic model
+* normalization from counts to probabilities
+* negative log likelihood as an optimization objective
+* smoothing and why zero counts are a problem
+
+**Homework_1_Sp23.pdf**  
+Link: [Homework_1_Sp23.pdf](sandbox:/mnt/data/Homework_1_Sp23.pdf)
+
+Main reading: Problem 1a–1c
+
+Main topics:
+* nonlinear regression model
+* squared error objective
+* hand-coded SGD
+* SGD with momentum
+* effect of initialization, learning rate, and batch size
+
+Model studied:
+\[
+y_i=\theta_1(\sin(x_i)+\cos(\theta_2 x_i))+\epsilon_i,\qquad \epsilon_i\sim N(0,\sigma^2)
+\]
+
+**Dataset**
+* [HW1_Problem1_Data.csv](sandbox:/mnt/data/HW1_Problem1_Data.csv)
+
+**LeetCode**
+* 20. Valid Parentheses
+* Link: https://leetcode.com/problems/valid-parentheses/
+
+---
+
+## What Was Completed Today
+
+### 1. Reviewed the learning objective of Homework 1 Problem 1
+Clarified the structure of the problem:
+* 1a: load the data and make a scatter plot
+* 1b: implement SGD by hand to estimate \(\theta_1,\theta_2\)
+* 1c: add momentum and compare with basic SGD
+
+Also clarified that the optimization target is the squared error loss on noisy observed data.
+
+### 2. Built the Day 4 problem skeleton
+Implemented the core problem structure:
+* `load_hw1_problem1_data(...)`
+* `generate_hw1_problem1_synth(...)`
+* `model_fn(x, theta1, theta2)`
+* `squared_error_loss(y_true, y_pred)`
+
+This separated:
+* data loading
+* model definition
+* loss computation
+
+which made the later optimizer implementation cleaner.
+
+### 3. Completed Problem 1a on the real dataset
+Loaded `HW1_Problem1_Data.csv` successfully and plotted the scatter plot of the observed data.
+
+This confirmed:
+* the file path and columns were read correctly
+* the observed pattern was nonlinear and consistent with the model structure
+* the project was ready for optimization experiments
+
+### 4. Derived gradients by hand for Problem 1b
+For the model
+\[
+\hat y_i=\theta_1(\sin(x_i)+\cos(\theta_2 x_i)),
+\]
+and mean squared error
+\[
+L=\frac{1}{m}\sum_{i=1}^m (y_i-\hat y_i)^2,
+\]
+manually derived the gradients with respect to:
+* \(\theta_1\)
+* \(\theta_2\)
+
+This was the key theoretical step before implementing SGD without autograd.
+
+### 5. Implemented hand-coded SGD
+Implemented a mini-batch SGD optimizer in pure Python / NumPy.
+
+Main features:
+* random mini-batch sampling
+* hand-coded gradient updates
+* loss tracking by iteration
+* tunable initialization, learning rate, batch size, and max iterations
+
+This satisfied the core requirement of Homework 1b.
+
+### 6. Implemented SGD with momentum
+Implemented momentum-based SGD for Homework 1c.
+
+Main features:
+* velocity variables for both parameters
+* momentum coefficient \(\alpha\)
+* same hand-coded gradients as basic SGD
+* loss logging for comparison with SGD
+
+This made it possible to compare:
+* optimizer stability
+* early descent speed
+* final fit quality
+
+### 7. Tested first on synthetic data
+Before running on the real dataset, tested both optimizers on synthetic data generated from the same model form.
+
+This was useful because it verified:
+* the gradient formulas were correct
+* the update rules were pointing in the right direction
+* the implementation was numerically stable enough to proceed
+
+An important observation:
+* the first momentum configuration was too aggressive and caused oscillation
+* after reducing the learning rate, the momentum version became much more stable
+
+### 8. Ran both optimizers on the real dataset
+Ran SGD and SGD with momentum on `HW1_Problem1_Data.csv`.
+
+Observed:
+* both methods reduced the loss substantially
+* momentum showed faster initial descent
+* both methods converged to very similar final loss values
+* the final fitted curves were nearly identical
+
+This suggests:
+* optimizer choice affected optimization speed more than final fit quality under the current tuning
+* momentum helped early optimization but did not materially improve the final fit over basic SGD
+
+### 9. Built comparison plots
+Generated the two key plots required for interpretation:
+
+* **loss curve comparison**
+  * SGD
+  * SGD with momentum
+
+* **data + fitted curve comparison**
+  * original scatter data
+  * SGD fitted curve
+  * SGD with momentum fitted curve
+
+Important implementation note:
+* sorted `x` before plotting fitted curves so the line plot was meaningful and not zig-zagged by unsorted inputs
+
+### 10. Completed LeetCode
+Completed today’s LeetCode problem:
+* 20. Valid Parentheses
+
+Method used:
+* stack
+* matching dictionary for brackets
+
+Complexity:
+* Time: `O(n)`
+* Space: `O(n)`
+
+The current solution is correct.
+
+---
+
+## Most Important Understandings Today
+* a probability model becomes trainable once it is paired with a loss function
+* negative log likelihood is a clean way to turn probability assignment into an optimization objective
+* hand-coded gradients can be implemented cleanly once model, residual, and loss are separated
+* optimizer behavior should be judged by both stability and speed, not only final loss
+* momentum can help early descent, but poor tuning can introduce severe oscillation
+* on this problem, optimizer choice influenced convergence speed more than final fitted shape under the current settings
+* for plotting fitted nonlinear curves, sorting the input is necessary before drawing the prediction line
+
+## Main Files Created or Updated Today
+* `src/stat9340/hw1_problem1.py` or corresponding Day 4 notebook version
+* `src/leetcode/day04_valid_parentheses.py`
+* `docs/daily_log.md`
+* plots saved under `artifacts/day04/`
+
+## Current Status
+The core Day 4 learning and implementation tasks are complete, including:
+* video study
+* Homework 1 Problem 1a–1c
+* real data loading and plotting
+* hand-derived gradients
+* SGD implementation
+* SGD with momentum implementation
+* synthetic-data verification
+* real-data comparison
+* LeetCode 20
+
+If final cleanup is still pending, the only remaining items are:
+* confirm `docs/daily_log.md` is saved
+* save the final plots to `artifacts/day04/`
+* make the git commit
+
+Recommended commit message:
+`day04: hw1 p1 sgd+momentum on real data`
