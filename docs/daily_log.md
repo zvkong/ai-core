@@ -1104,3 +1104,259 @@ If final cleanup is still pending, the only remaining items are:
 
 Recommended commit message:
 `day04: hw1 p1 sgd+momentum on real data`
+
+# Day 5 Summary — Deep Learning Intensive Plan
+
+## Objective for Today
+The main goal today was to extend the optimizer comparison from Homework 1 Problem 1 beyond SGD and momentum by adding Adam and PSO, then building a unified comparison across all optimizers on the same nonlinear regression task.
+
+## Learning Resources Used Today
+
+**Karpathy, The spelled-out intro to language modeling: building makemore**  
+Link: https://youtu.be/PaCmpygFfXo
+
+Main focus today:
+* `01:00:50–01:26:17`
+  * model smoothing with fake counts
+  * the neural network approach
+  * creating the bigram dataset for the neural net
+  * one-hot encodings
+  * one linear layer implemented with matrix multiplication
+  * softmax probabilities
+* `01:35:49–01:57:45`
+  * vectorized loss
+  * backward and update in PyTorch
+  * putting everything together
+  * one-hot as row selection in the weight matrix
+  * smoothing as regularization
+  * sampling from the neural net
+
+Main topics:
+* one-hot encoding as row selection
+* vectorized loss as a tensor-parallel version of per-sample loss
+* connecting model, loss, gradient, and update into a single training loop
+
+**Optimization_Jan31.pdf**  
+Main reading:
+* PSO-related slides
+  * Particle Swarm Optimization
+  * Velocity Updates
+  * Algorithm Details
+
+Main topics:
+* particle as candidate solution
+* inertia / cognitive / social terms
+* personal best and global or neighborhood best
+* position and velocity update order
+
+**Homework_1_Sp23.pdf**  
+Link: [Homework_1_Sp23.pdf](sandbox:/mnt/data/Homework_1_Sp23.pdf)
+
+Main reading: Problem 1d–1f
+
+Main topics:
+* hand-coded Adam
+* hand-coded PSO
+* optimizer comparison
+* good / bad fit comparison
+
+Model studied:
+\[
+y_i=\theta_1(\sin(x_i)+\cos(\theta_2 x_i))+\epsilon_i,\qquad \epsilon_i\sim N(0,\sigma^2)
+\]
+
+**Dataset**
+* [HW1_Problem1_Data.csv](sandbox:/mnt/data/HW1_Problem1_Data.csv)
+
+**LeetCode**
+* 121. Best Time to Buy and Sell Stock
+* Link: https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+
+---
+
+## What Was Completed Today
+
+### 1. Clarified the Day 5 extension of Homework 1 Problem 1
+Identified the new scope of Problem 1d–1f:
+* 1d: implement Adam by hand
+* 1e: implement PSO by hand
+* 1f: compare optimizer behavior and fitted results
+
+This made Day 5 a continuation of the same nonlinear regression problem, but with a broader optimizer comparison framework.
+
+### 2. Refined the conceptual understanding of one-hot encoding and vectorized loss
+Clarified two important ideas from the makemore video:
+
+* **one-hot encoding**
+  * transforms a discrete token index into a sparse indicator vector
+  * when multiplied by a weight matrix, it effectively selects one row of the matrix
+
+* **vectorized loss**
+  * has the same mathematical objective as batch loss
+  * differs only in implementation style
+  * replaces explicit sample-by-sample loops with parallel tensor operations
+
+These ideas were useful conceptually even though the Homework 1 implementation remained in pure Python / NumPy.
+
+### 3. Studied PSO before implementation
+Inserted a bridge step before coding PSO and reviewed the PSO section from the optimization slides.
+
+Key concepts clarified:
+* one particle represents one candidate parameter vector, such as \((\theta_1,\theta_2)\)
+* velocity update contains:
+  * inertia term
+  * cognitive term
+  * social term
+* \(p_i\) is the personal best of particle \(i\)
+* \(g_i\) is the best location from the social reference set, such as a neighborhood or global best
+* the standard iteration order is:
+  * evaluate current positions
+  * update personal best
+  * update global/neighborhood best
+  * update velocity
+  * update position
+
+### 4. Implemented Adam by hand
+Built a hand-coded Adam optimizer for the same Homework 1 regression model.
+
+Main components implemented:
+* first moment estimates
+* second moment estimates
+* bias correction
+* parameter updates for \(\theta_1\) and \(\theta_2\)
+* loss logging
+
+Important debugging insight:
+* both gradients for \(\theta_1\) and \(\theta_2\) must be computed from the same parameter state within each iteration
+* updating one parameter before computing the other gradient would contaminate the update
+
+After correction, Adam ran stably and converged properly on the real dataset.
+
+### 5. Compared Adam with SGD and SGD with momentum
+Ran Adam on the same real dataset and compared it with the previous Day 4 optimizers.
+
+Observed:
+* Adam reduced the loss substantially
+* Adam was stable
+* SGD with momentum still showed the fastest early descent under the current tuning
+* all three methods converged to very similar final loss regions and nearly identical fitted curves
+
+This showed that, for this problem, optimizer differences were more visible in the training path than in the final fit.
+
+### 6. Implemented PSO by hand
+Built a PSO optimizer for the same squared error objective.
+
+Core components implemented:
+* particle positions
+* particle velocities
+* personal best positions and losses
+* neighborhood-best or social reference selection
+* iterative velocity and position updates
+* loss history tracking
+
+Important corrections made during debugging:
+* excluded each particle from its own neighborhood search
+* corrected the iteration count logic
+* added boundary handling through clipping
+* aligned the return format with the other optimizers
+* interpreted the tracked PSO loss as a best-so-far history
+
+### 7. Improved PSO until it reached comparison quality
+The first PSO run was not competitive with SGD / momentum / Adam.  
+After debugging and adjustment, PSO improved substantially.
+
+Final behavior:
+* PSO reduced the loss to roughly the same region as the other optimizers
+* it no longer stalled at a clearly worse level
+* its fitted curve became nearly indistinguishable from the others
+
+This was the main engineering success of Day 5:
+* PSO went from “running” to “comparable”
+
+### 8. Built the four-optimizer comparison
+Collected results across:
+* SGD
+* SGD with momentum
+* Adam
+* PSO
+
+For each optimizer, organized:
+* final loss
+* final parameter estimates
+* optimizer label
+* hyperparameter setting
+* maximum iteration count
+
+This formed the basis for the Day 5 comparison harness.
+
+### 9. Produced final comparison plots
+Generated the two main plots needed for interpretation:
+
+* **loss curve comparison**
+  * SGD
+  * SGD with momentum
+  * Adam
+  * PSO
+
+* **data + fitted curve comparison**
+  * original data points
+  * fitted curve from each optimizer
+
+Final interpretation from these plots:
+* all four optimizers substantially reduced the loss
+* momentum often had the fastest early descent
+* Adam was stable
+* PSO became competitive after debugging and tuning
+* all four methods ended with very similar fitted curves
+
+### 10. Completed LeetCode
+Completed today’s LeetCode problem:
+* 121. Best Time to Buy and Sell Stock
+
+Main idea:
+* one-pass scan
+* track the minimum price seen so far
+* update the maximum profit greedily
+
+Complexity:
+* Time: `O(n)`
+* Space: `O(1)`
+
+---
+
+## Most Important Understandings Today
+* optimizer comparison should consider both early descent behavior and final fit quality
+* Adam requires consistent gradient evaluation, first/second moments, and bias correction
+* PSO does not use gradients; it searches directly in parameter space using particle dynamics
+* a particle is a candidate parameter vector, not a data point
+* PSO performance depends heavily on update structure, neighborhood logic, and parameter tuning
+* one-hot encoding is best understood as row selection in a weight matrix
+* vectorized loss and batch loss optimize the same objective; they differ mainly in implementation form
+* under the current tuning, all four optimizers reached similar final fitted solutions on this problem
+
+## Main Files Created or Updated Today
+* optimizer comparison code in the Day 5 notebook or corresponding source file
+* `artifacts/day05/hw1_p1_optimizer_compare.csv`
+* comparison plots under `artifacts/day05/`
+* `src/leetcode/day05_best_time_buy_sell_stock.py`
+* `docs/daily_log.md`
+
+## Current Status
+The core Day 5 learning and implementation tasks are complete, including:
+* video study
+* PSO slide study
+* Homework 1 Problem 1d–1f
+* hand-coded Adam
+* hand-coded PSO
+* optimizer comparison across four methods
+* final comparison plots
+* LeetCode 121
+
+If final cleanup is still pending, the only remaining items are:
+* confirm `artifacts/day05/hw1_p1_optimizer_compare.csv` is saved
+* confirm final plots are saved under `artifacts/day05/`
+* update `docs/daily_log.md`
+* make the git commit
+
+Recommended commit message:
+`day05: hw1 p1 adam+pso + comparison harness`
