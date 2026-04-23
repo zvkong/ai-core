@@ -1360,3 +1360,336 @@ If final cleanup is still pending, the only remaining items are:
 
 Recommended commit message:
 `day05: hw1 p1 adam+pso + comparison harness`
+
+# Day 6
+
+## Daily Blueprint
+
+- **Reading**
+  - `Optimization_Jan31.pdf`
+    - Section 1 recap: loss definitions
+    - Section 2 recap: gradients
+  - `Homework_1_Sp23.pdf`
+    - Problem 2a–2c
+
+- **Specific Practice**
+  - Rewrite Homework 1 Problem 2a–2c in **PyTorch**
+  - Build:
+    - Rosenbrock contour plot
+    - gradient vectors
+    - optimizer trajectories for:
+      - SGD
+      - SGD with momentum
+      - Adam
+  - Starting point: `(-0.1, 2.5)`
+  - Store intermediate optimizer states
+
+- **LeetCode**
+  - 53. Maximum Subarray
+  - https://leetcode.com/problems/maximum-subarray/
+
+- **Expected Outcome**
+  - `notebooks/day06_rosenbrock_paths.ipynb`
+  - commit:
+    - `day06: hw1 p2 rosenbrock + optimizer trajectories (pytorch)`
+
+---
+
+## Core Formula
+
+The 2D Rosenbrock function is
+
+\[
+f(x_1, x_2)=100(x_2-x_1^2)^2+(1-x_1)^2
+\]
+
+Manual gradient:
+
+\[
+\frac{\partial f}{\partial x_1}=-400x_1(x_2-x_1^2)-2(1-x_1)
+\]
+
+\[
+\frac{\partial f}{\partial x_2}=200(x_2-x_1^2)
+\]
+
+Global minimum:
+
+\[
+(x_1, x_2)=(1,1)
+\]
+
+---
+
+## What to Understand
+
+### 1. Why Rosenbrock is hard
+It is not mainly difficult because of many local minima.  
+The main issue is a **narrow, curved valley** with very different curvature in different directions.
+
+### 2. What each plot means
+- **Contour plot**: the geometry of the objective surface
+- **Gradient vectors**: the local steepest direction
+- **Optimizer trajectory**: how a specific update rule actually moves across the surface
+
+### 3. Why compare SGD, momentum, and Adam
+- **SGD** uses only the current gradient, so it often zig-zags in narrow valleys
+- **Momentum** carries historical direction, so it usually moves more smoothly
+- **Adam** adds coordinate-wise adaptive scaling, so it often enters the valley faster
+
+---
+
+## Engineering Checklist
+
+### Phase 1
+- [ ] Implement `rosenbrock(x)` in PyTorch
+- [ ] Implement manual gradient
+- [ ] Verify manual gradient against autograd
+
+### Phase 2
+- [ ] Draw contour plot
+- [ ] Draw gradient vectors on the contour
+- [ ] Run SGD from `(-0.1, 2.5)`
+- [ ] Run SGD with momentum from `(-0.1, 2.5)`
+- [ ] Run Adam from `(-0.1, 2.5)`
+- [ ] Save intermediate states for each optimizer
+- [ ] Overlay trajectories on the contour
+
+### Phase 3
+- [ ] Compare the three optimizers in words
+- [ ] Save notebook
+- [ ] Write short notes in `docs/daily_log.md`
+- [ ] Make the required Git commit
+
+---
+
+## Minimal Comparison Template
+
+Use these four lines only:
+
+- entry into valley
+- oscillation across valley walls
+- progress along valley floor
+- final distance to `(1, 1)`
+
+---
+
+## Self-Check Questions
+
+1. Why is minibatch SGD noisier than full gradient descent, but still useful?
+
+2. Why can momentum both speed up movement along a valley and reduce oscillation?
+
+3. Why is Rosenbrock difficult because of valley geometry rather than many local minima?
+
+4. If SGD zig-zags, momentum is smoother, and Adam enters the valley quickly then slows, what does that tell you about the update rules?
+
+---
+
+## Final Deliverables
+
+- `notebooks/day06_rosenbrock_paths.ipynb`
+- one contour + gradient plot
+- one contour + trajectory overlay plot
+- one short comparison note
+- commit:
+  - `day06: hw1 p2 rosenbrock + optimizer trajectories (pytorch)`
+
+# Day 8 Summary / Day 8 学习总结
+
+## English
+
+### 1. Day objective
+
+Today’s target was Day 8 of the study plan: use the shallow neural network material plus Homework 2 Problem 1a to build a **1-hidden-layer MLP regression model with manual backpropagation and L2 penalty**, and compare it against a baseline. The plan explicitly specifies manual gradients and treats this as the Day 8 engineering task. :contentReference[oaicite:0]{index=0}  
+Homework 2 Problem 1a specifically asks to **predict `quality`**, include **L2 shrinkage**, use a **held-out test set**, and compare performance to **multiple linear regression**. :contentReference[oaicite:1]{index=1}
+
+### 2. What was completed today
+
+- Read and discussed the shallow neural network formulation:
+  - hidden unit definition
+  - activation function role
+  - output function role
+  - single-output regression vs binary / multi-class classification
+- Clarified that **HW2 1a is regression**, not classification, because `quality` is treated as a numeric response in the homework. :contentReference[oaicite:2]{index=2}
+- Implemented the core **manual backpropagation** training loop for a one-hidden-layer neural network.
+- Added **output bias** through the hidden-bias construction.
+- Added **L2 penalty** into the gradient update.
+- Added **held-out test MSE** evaluation.
+- Fit a **multiple linear regression baseline** and compared test MSEs.
+- Verified that training loss decreases steadily across epochs.
+
+### 3. Key concepts understood today
+
+#### 3.1 Hidden activation vs output activation
+
+A hidden layer unit is
+\[
+z_j = f\left(\sum_i w_{ji}x_i\right),
+\]
+so the hidden layer consists of a linear predictor followed by a nonlinear activation. The notes explicitly state that the nonlinearity of \(f\) is what makes the model more than “a big linear regression.” :contentReference[oaicite:3]{index=3}
+
+The output function \(g\) is task-dependent:
+
+- regression: identity
+- binary classification: sigmoid
+- multi-class classification: softmax :contentReference[oaicite:4]{index=4} :contentReference[oaicite:5]{index=5}
+
+#### 3.2 Why HW2 1a is regression
+
+The homework defines `quality` as a score and asks to compare to multiple linear regression using test MSE. That means the problem is treated as **single-output regression**, even if the raw response is integer-valued. :contentReference[oaicite:6]{index=6}
+
+#### 3.3 Matrix shape logic
+
+Under row-wise Python notation:
+
+- \(X \in \mathbb{R}^{m \times p}\)
+- \(W \in \mathbb{R}^{p \times J}\)
+- \(H \in \mathbb{R}^{m \times J}\)
+- \(\beta \in \mathbb{R}^{J \times 1}\) or \((J+1)\times 1\) with output bias
+- \(y_{\text{pred}} \in \mathbb{R}^{m \times 1}\)
+
+The gradient must have the same shape as the corresponding parameter matrix.
+
+#### 3.4 Input standardization vs regularization
+
+The lecture notes list these separately:
+
+- **input standardization**: make inputs mean zero and standard deviation one
+- **regularization**: weight decay / L2 penalty in the objective function :contentReference[oaicite:7]{index=7}
+
+These are related but not the same thing.
+
+### 4. Errors made today
+
+This was the most important part of the session.
+
+#### 4.1 Misidentified HW2 1a as a classification problem
+
+At first, the task was treated as if `quality` were a class label. That was incorrect.  
+Correction: HW2 1a is a **regression** task on `quality`. :contentReference[oaicite:8]{index=8}
+
+#### 4.2 Mixed up hidden-layer output and pre-activation
+
+An incorrect expression appeared:
+\[
+y_{\text{pred}} = z @ \beta
+\]
+
+Correction:
+\[
+y_{\text{pred}} = h @ \beta
+\]
+because \(\beta\) connects the **activated hidden units** to the output, not the raw pre-activation.
+
+#### 4.3 Confused true label and model output in classification notation
+
+There was confusion between:
+
+- \(\tilde y\): observed target
+- \(y\): network output probability
+
+Correction: in classification, \(\tilde y\) is the label, while the network output is a continuous probability in \((0,1)\) or a softmax vector. :contentReference[oaicite:9]{index=9}
+
+#### 4.4 Confused dimensions of \(\beta\) and \(\partial Q / \partial \beta\)
+
+There was uncertainty about whether \(\beta\) should be \(J \times K\) or \(K \times J\).  
+Resolution: the dimension depends on matrix convention, but the gradient must always have the **same shape** as \(\beta\).
+
+#### 4.5 Wrote the wrong matrix expression for \(g_W\)
+
+An early gradient form for `gw` attempted to chain matrix multiplication directly in a way that ignored the required elementwise hidden-layer derivative.  
+Correction:
+\[
+\delta_h = (y_{\text{pred}}-y)\beta^\top \circ h \circ (1-h), \qquad
+g_W = X^\top \delta_h
+\]
+
+This fixed both the logic and the shape.
+
+#### 4.6 Added a bias column to \(y\)
+
+That was incorrect.  
+Correction: bias belongs in the input and hidden feature matrices, not in the response vector.
+
+#### 4.7 Used the wrong minibatch indexing logic
+
+Earlier versions had:
+- batching based on the wrong dimension
+- shuffled arrays created but not actually used
+
+Correction:
+- shuffle over sample indices
+- slice `x_shuffle` and `y_shuffle`
+- divide gradients by the actual current minibatch size
+
+#### 4.8 Inconsistent regularization on output bias
+
+The loss excluded output bias from the L2 penalty, but the gradient originally penalized the full `beta`.  
+Correction: the penalty on `beta` was adjusted so that the output bias row is not regularized.
+
+#### 4.9 Stale variable in the loss calculation
+
+`beta_nonbias` used in the epoch loss was initially taken from an earlier state rather than the updated `beta`.  
+Correction: recompute `beta_nonbias = beta[1:]` immediately before calculating the loss.
+
+#### 4.10 Train/test feature mismatch and notebook-state confusion
+
+A matrix multiplication error appeared because train/test feature dimensions looked inconsistent after adding bias.  
+The final diagnosis was that:
+- the split logic itself was fine
+- the more likely issue was notebook state / stale function version / inconsistent inputs during earlier runs
+
+#### 4.11 Forgot the homework requirement to remove `type`
+
+Homework 2 Problem 1a requires prediction using all inputs **except `type`**. This needed to be explicitly checked in the final pipeline. :contentReference[oaicite:10]{index=10}
+
+#### 4.12 Mixed array/DataFrame types in the linear regression baseline
+
+`fit()` was called with `.values`, while `predict()` was called on a DataFrame.  
+This caused a warning but not a wrong result.  
+Correction: use arrays on both sides or DataFrames on both sides.
+
+### 5. Current implementation status
+
+#### Completed
+- manual 1-hidden-layer backprop core
+- L2 penalty
+- output bias handling
+- held-out test MSE
+- multiple linear regression baseline
+- test MSE comparison
+
+#### Still worth confirming in the final saved version
+- predictor matrix excludes `type`
+- train/test standardization uses training-set mean/std
+- final notebook/script is cleaned and reproducible
+
+### 6. Current numerical result
+
+From the latest run:
+
+- Neural network test MSE: approximately **0.7592**
+- Linear regression test MSE: approximately **0.5539**
+
+So under the current tuning configuration:
+
+> the linear regression baseline performed better than the manual neural network.
+
+This is a valid result, not a failure. It means the current network configuration still needs tuning if the goal is to outperform the linear baseline.
+
+### 7. Practical interpretation
+
+A reasonable interpretation paragraph for the homework is:
+
+> The manually implemented one-hidden-layer neural network achieved a test MSE of about 0.7592, while the multiple linear regression baseline achieved a test MSE of about 0.5539. Under the current tuning configuration, the linear regression model performed better on the held-out test set. This suggests that the neural network may require further tuning of hidden size, learning rate, regularization strength, or input preprocessing to achieve competitive performance.
+
+### 8. Final status for Day 8
+
+Recommended status label:
+
+```md
+[✓] Day 8 core objective completed
+[✓] HW2 1a manual backprop model implemented
+[✓] Baseline comparison completed
+[ ] Final cleanup and packaging
