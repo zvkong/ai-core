@@ -1693,3 +1693,82 @@ Recommended status label:
 [✓] HW2 1a manual backprop model implemented
 [✓] Baseline comparison completed
 [ ] Final cleanup and packaging
+
+# Day 09 Log
+
+## English
+
+### Objective
+Day 9 focused on Homework 2 Problem 1(b): implement a one-hidden-layer binary classifier for wine `type` using manual gradients, cross-entropy loss, and a sigmoid output, without autograd. The Day 9 plan also required metric reporting, including accuracy and a calibration placeholder, plus LeetCode 35. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}
+
+### What I completed
+- Implemented a one-hidden-layer binary classification network from scratch.
+- Used sigmoid activation in the hidden layer so the implementation matches the course-note gradient formulas.
+- Correctly encoded `type` into binary labels.
+- Finished manual forward pass:
+  - hidden pre-activation: `h1 = x @ w + bw`
+  - hidden activation: `z = sigmoid(h1)`
+  - output pre-activation: `h2 = z @ beta + bb`
+  - output probability: `y_pred = sigmoid(h2)`
+- Finished manual backward pass for:
+  - output weights `beta`
+  - output bias `bb`
+  - hidden weights `w`
+  - hidden bias `bw`
+- Fixed the validation loss to standard elementwise mean BCE.
+- Obtained a reasonable final validation result:
+  - validation loss: `0.074082`
+  - validation accuracy: `0.980658`
+
+### Main mistakes I made today
+1. I initially used the wrong variable in the second layer:
+   - wrong: `h2 = h1 @ beta + bb`
+   - correct: `h2 = z @ beta + bb`
+
+2. I initially set the hidden-layer bias gradient to zero:
+   - wrong: `gbw = 0`
+   - correct idea: hidden bias has a nonzero gradient in general and must be updated componentwise.
+
+3. I mixed activation choices and derivatives at one point:
+   - when using ReLU, I mistakenly used the sigmoid derivative form.
+   - after aligning with the slide derivation, I switched to sigmoid hidden units and used `z * (1 - z)` consistently.
+
+4. I initially wrote the loss in a matrix-product form:
+   - this produced a validation loss around `38`, which was misleading.
+   - the model itself was fine; the loss definition was wrong.
+   - after switching to elementwise mean BCE, the loss returned to a sensible scale.
+
+5. I initially handled some minibatch averaging inconsistently:
+   - `gbb` also needed division by the current batch size.
+   - gradients should be averaged by the actual minibatch size, especially for the last batch.
+
+### What I understood today
+- Binary cross-entropy here is just Bernoulli negative log-likelihood.
+- The hidden layer acts like a learned nonlinear basis expansion, and the output layer is logistic regression on those learned features.
+- Backpropagation is just repeated chain-rule propagation of the score through the network.
+- Accuracy and probability quality are different objects:
+  - accuracy measures classification correctness
+  - calibration measures whether predicted probabilities match empirical frequencies
+
+### LeetCode
+- Worked on LeetCode 35: **Search Insert Position**.
+- My first binary-search version was incorrect because the invariant was not clean.
+- The correct solution is the standard `lower_bound` pattern:
+  - move right when `nums[mid] < target`
+  - otherwise move left
+  - final answer is `left`
+
+### Remaining items
+- Add a minimal calibration placeholder:
+  - 10-bin reliability diagram is enough.
+- Save the final Day 9 notebook cleanly:
+  - `notebooks/day09_manual_ce_gradients.ipynb`
+- Add a short summary of final metrics and plots.
+
+### Deliverables produced
+- Manual binary classification code for Homework 2 Problem 1(b)
+- Final validation metrics
+- Corrected LeetCode 35 solution
+
+### Final assessment
+Day 9 core task is effectively completed. The manual binary-classification backprop implementation is now correct in structure, numerically reasonable, and aligned with the Day 9 objective. The only small packaging item still worth adding is the calibration placeholder. :contentReference[oaicite:2]{index=2}
