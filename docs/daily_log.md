@@ -1495,7 +1495,7 @@ Use these four lines only:
 - commit:
   - `day06: hw1 p2 rosenbrock + optimizer trajectories (pytorch)`
 
-# Day 8 Summary / Day 8 学习总结
+# Day 8 Summary
 
 ## English
 
@@ -1772,3 +1772,45 @@ Day 9 focused on Homework 2 Problem 1(b): implement a one-hidden-layer binary cl
 
 ### Final assessment
 Day 9 core task is effectively completed. The manual binary-classification backprop implementation is now correct in structure, numerically reasonable, and aligned with the Day 9 objective. The only small packaging item still worth adding is the calibration placeholder. :contentReference[oaicite:2]{index=2}
+
+# Day 10 Log — PyTorch MLP Trainer with BatchNorm and Dropout
+
+## 1. Daily Objective
+
+The Day 10 objective was to move from manually derived backpropagation to a minimal reusable PyTorch training framework.
+
+The official coding task was:
+
+- Build a PyTorch MLP training framework.
+- Include train/validation split.
+- Use PyTorch autograd through `loss.backward()`.
+- Add BatchNorm and Dropout modules.
+- Add shape assertions.
+- Implement early stopping based on validation loss.
+- Write simple CSV logging.
+- Save the best model checkpoint.
+
+---
+
+## 2. Final Scope Clarification
+
+During the discussion, the implementation scope was corrected.
+
+The initial interpretation was too engineering-heavy. It included `dataclass` configs, generic task handling, config JSON files, unit tests, and detailed checkpoint metadata. These components are useful later, but they go beyond the direct Day 10 learning target.
+
+The final accepted scope is a minimal PyTorch trainer script containing:
+
+- one `MLP` class,
+- one data-splitting function,
+- one training function for a single epoch,
+- one evaluation function,
+- one full training function with early stopping and CSV logging.
+
+---
+
+## 3. Implemented Code Structure
+
+The final implementation contains:
+
+```python
+class MLP(nn.Module)
