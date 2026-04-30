@@ -1812,5 +1812,19 @@ The final accepted scope is a minimal PyTorch trainer script containing:
 
 The final implementation contains:
 
-```python
-class MLP(nn.Module)****
+
+# Day 11 Summary
+
+Today I completed the assigned video study for Karpathy’s *makemore Part 3*, focusing on activation scale, gradient flow, BatchNorm, and train/eval behavior.
+
+I then started Homework 2 Problem 2 and implemented a PyTorch multitask neural network for the wine dataset. The model uses a shared feature extractor with two heads: one regression head for `quality` and one classification head for `type`.
+
+Key takeaways:
+
+- Use `nn.Sequential` for simple shared layers.
+- Use a custom `nn.Module` when the model has multiple outputs.
+- Pair raw logits with `BCEWithLogitsLoss`.
+- Keep `sigmoid` outside the model and apply it only during prediction.
+- Check tensor shapes before training.
+- Log regression loss and classification loss separately because their scales can differ.
+- Add train/validation split and input standardization before finalizing the model.
