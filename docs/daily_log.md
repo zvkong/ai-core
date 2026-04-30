@@ -1813,4 +1813,4 @@ The final accepted scope is a minimal PyTorch trainer script containing:
 The final implementation contains:
 
 ```python
-class MLP(nn.Module)
+class MLP(nn.Module)****
