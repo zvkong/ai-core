@@ -1828,3 +1828,39 @@ Key takeaways:
 - Check tensor shapes before training.
 - Log regression loss and classification loss separately because their scales can differ.
 - Add train/validation split and input standardization before finalizing the model.
+
+# Day 15 Log
+
+## Objective
+Finish the WaveNet reproduction, study CNN Section 1 on convolutions, and complete HW3 Problem 1a using manual convolution filters.
+
+## Completed
+- Watched and reproduced the Z2H WaveNet material.
+- Finished CNN Section 1: Convolutions.
+- Reviewed HW3 Problem 1a.
+- Implemented 3x3 convolution filters for MNIST:
+  - shift-left filter
+  - shift-up filter
+  - Laplacian edge-detection filter
+- Plotted original MNIST images with the convolved outputs.
+- Confirmed that HW3 Problem 1a only requires manual/NumPy convolution; TensorFlow or PyTorch is not necessary for this part.
+- Completed today’s Pandas / NumPy practice.
+
+## Key Concepts
+- Convolution applies a local filter over neighboring image regions.
+- Padding preserves spatial output size.
+- Fixed filters can perform interpretable image transformations before learning any CNN model.
+- Laplacian filters detect edge-like high-frequency structure.
+- PyTorch/TensorFlow convolution functions are useful for later CNN training, but HW3 1a can be solved directly with NumPy.
+
+## Files
+- `notebooks/day15_z2h_wavenet.ipynb`
+- `notebooks/day15_mnist_manual_convs_numpy.ipynb`
+- `artifacts/day15/mnist_manual_convs.png`
+
+## Practice
+- LeetCode Pandas practice
+- DeepML / NumPy practice
+
+## Commit
+day15: wavenet toy + hw3 conv filters
