@@ -1864,3 +1864,83 @@ Finish the WaveNet reproduction, study CNN Section 1 on convolutions, and comple
 
 ## Commit
 day15: wavenet toy + hw3 conv filters
+
+# Day 16 Summary — CNN Formulation and Tensor Shape Practice
+
+## Date
+Day 16
+
+## Overall Goal of Day 16
+Complete the conceptual transition from manual convolution filters to the formal CNN layer formulation, with emphasis on feature maps, filter tensors, pooling, parameter sharing, and tensor shape reasoning. Complete supporting LeetCode Pandas and DeepML exercises focused on dataframe operations and matrix/tensor manipulation.
+
+---
+
+## Materials Used
+
+### 1. STAT-9340 course materials
+- `CNNs_Feb23.pdf`
+  - Completed:
+    - CNN Section 2 reading
+    - CNN formulation pages focused on:
+      - convolutional layer notation
+      - filter tensors
+      - feature maps
+      - pooling operation
+      - parameter sharing
+      - CNN training intuition
+
+### 2. Algorithm and data practice
+- LeetCode Pandas:
+  - 2880. Select Data
+  - 2881. Create a New Column
+  - 2882. Drop Duplicate Rows
+
+- DeepML:
+  - 2. Transpose of a Matrix
+  - 3. Reshape Matrix
+  - 4. Calculate Mean by Row or Column
+
+---
+
+## What Was Completed
+
+### 1. CNN theory reading
+Completed the remaining Day 16 CNN slide reading after already finishing Section 2 earlier. The focus was on the formal CNN layer setup rather than full model implementation.
+
+Key concepts covered:
+- how a convolutional filter operates over spatial neighborhoods
+- how filter depth matches the input depth
+- how one filter produces one feature map
+- how multiple filters produce multiple output channels
+- how pooling reduces spatial resolution
+- why pooling is applied separately to each feature map
+- how parameter sharing reduces the number of trainable parameters
+- why CNN training requires accumulating gradients over shared filter applications
+
+### 2. Shape reasoning
+Reviewed the standard convolution output size formula:
+
+\[
+H_{\text{out}} =
+\left\lfloor
+\frac{H_{\text{in}} + 2P - K}{S}
+\right\rfloor + 1
+\]
+
+\[
+W_{\text{out}} =
+\left\lfloor
+\frac{W_{\text{in}} + 2P - K}{S}
+\right\rfloor + 1
+\]
+
+Confirmed the MNIST example:
+
+```text
+Input: 28 x 28 x 1
+
+Conv 3 x 3, padding = 1, stride = 1, 32 filters
+Output: 28 x 28 x 32
+
+MaxPool 2 x 2, stride = 2
+Output: 14 x 14 x 32
