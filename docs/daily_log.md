@@ -434,3 +434,355 @@ Complete the main CNN implementation and interpretation tasks for HW3 Problem 1 
 * **LeetCode:** 74, 48, 73, and 200 completed.
 * **DeepML:** Confusion Matrix, Covariance Matrix, Feature Scaling, and Matrix Multiplication completed.
 * **Commit:** `day17: mnist cnn baseline and interpretability practice`
+---
+
+# Day 18 Summary — Deep Learning Intensive Plan
+
+## Objective for Today
+
+The main goal today was to finish the remaining STAT-9340 Homework 3 components and consolidate the stochastic neural model material, especially Gaussian Processes and Deep Gaussian Processes.
+
+By the end of Day 18, Homework 3 was considered complete. The main completed work included the DGP extension from the stochastic neural model notes, the HW3 CNN/Bayesian-layer requirement in the current implementation path, and the final comparison/write-up needed for HW3.
+
+A PyTorch-native implementation of Bayesian layers was not completed today. This is intentionally deferred as an optional future improvement and is not blocking HW3 completion.
+
+---
+
+## Learning Resources Used Today
+
+**STAT-9340: Stochastic Neural Models**  
+File: `StochasticNeuralModels_Mar17.pdf`
+
+Main reading:
+* Gaussian Process regression
+* GP posterior prediction
+* covariance functions
+* hierarchical GP vs Deep GP
+* DGP setup from the single-layer `sin(x)` example
+* Bayesian Neural Network section as conceptual background
+
+Main topics:
+* latent process model
+* Gaussian process as a distribution over functions
+* posterior GP prediction by conditional Gaussian formulas
+* covariance kernels and prediction uncertainty
+* DGP as composition of GP mappings
+* Bayesian neural networks as uncertainty-aware neural models
+
+**STAT-9340 Homework 3**  
+File: `Homework_3_Sp23.pdf`
+
+Main reading:
+* Problem 1a–1f: MNIST CNN, convolution filters, CNN fitting, kernel inspection, layer activations, Bayesian-layer uncertainty
+* Problem 2: extend the single-layer `sin(x)` example from stochastic neural model slides 29–33 into a two-layer DGP and compare the fit
+
+**Practice**
+* LeetCode 11. Container With Most Water
+* DeepML 2x2 Matrix Inverse / linear algebra practice
+
+---
+
+## What Was Completed Today
+
+### 1. Completed the remaining Homework 3 work
+
+Homework 3 is now complete.
+
+Completed HW3 scope:
+* Problem 1a: manual 3x3 convolution filters on MNIST
+  * shift image left
+  * shift image up
+  * Laplacian edge filter
+* Problem 1b: MNIST CNN classifier
+  * trained CNN for 10-class digit classification
+  * evaluated performance on the test set
+* Problem 1c: first convolutional layer kernel extraction
+  * extracted kernel weights
+  * applied learned filters to input images
+  * interpreted what the filters were detecting
+* Problem 1d: layer output shape inspection
+  * passed an image through the model
+  * inspected activated layer outputs
+  * justified tensor dimensions layer by layer
+* Problem 1e: activation visualization
+  * generated activation plots for example digits 0–9
+  * compared how features evolve through the network
+* Problem 1f: Bayesian-layer / uncertainty component
+  * completed the HW3 uncertainty requirement in the current implementation path
+  * generated repeated predictions / uncertainty-style outputs and interpreted the behavior
+* Problem 2: DGP
+  * extended the single-layer `sin(x)` GP example into a two-layer DGP comparison
+  * compared the fit against the single-layer baseline
+  * wrote up the answer to “How much did the fit change?”
+
+### 2. Reviewed the Gaussian Process data model
+
+The GP regression setup was reviewed as:
+
+\[
+z_i = Y_i + \epsilon_i,
+\]
+
+where \(Y_i\) is the latent process value and \(\epsilon_i\) is observation noise.
+
+The latent process is modeled as:
+
+\[
+Y(x)=f(x),
+\qquad
+f(x)\sim GP(m(x), c(x,x')).
+\]
+
+Key interpretation:
+* \(m(x)\) controls the prior mean function.
+* \(c(x,x')\) controls covariance between any two input locations.
+* Prediction at unobserved \(x_0\) is possible because the GP gives a joint Gaussian distribution over observed and unobserved function values.
+
+### 3. Reviewed GP posterior prediction
+
+The conditional Gaussian prediction formula was reviewed:
+
+\[
+Y(x_0)\mid z
+\sim
+Gau\left(
+\mu_0+c_0^\top C_z^{-1}(z-\mu),
+\;
+c_{0,0}-c_0^\top C_z^{-1}c_0
+\right).
+\]
+
+The posterior mean is:
+
+\[
+\hat{Y}(x_0)
+=
+\mu_0+c_0^\top C_z^{-1}(z-\mu).
+\]
+
+The posterior variance is:
+
+\[
+\sigma^2_{Y_0}
+=
+c_{0,0}-c_0^\top C_z^{-1}c_0.
+\]
+
+Main implementation point:
+* avoid explicitly computing \(C_z^{-1}\)
+* use a linear solve such as `np.linalg.solve(...)` or `torch.linalg.solve(...)`
+
+### 4. Compared covariance functions
+
+Reviewed the role of covariance functions in GP regression.
+
+Main points:
+* the covariance function must be positive semi-definite
+* the covariance function controls smoothness and uncertainty
+* nearby inputs are typically assumed to be more strongly dependent
+* common choices include Gaussian/RBF, exponential, Matérn, and related kernels
+
+Important distinction:
+* RBF / Gaussian kernels tend to imply smoother functions
+* exponential kernels allow rougher sample paths
+* adding observation noise prevents exact interpolation and improves numerical stability
+
+### 5. Completed the Deep Gaussian Process component
+
+Completed the HW3 DGP task by extending the single-layer `sin(x)` GP example to a two-layer DGP.
+
+Key conceptual distinction:
+* A hierarchical GP can stack GP priors while still operating directly on the original input \(x\).
+* A true DGP composes mappings, where the output representation from one GP layer becomes the input to the next layer.
+
+The DGP composition can be summarized as:
+
+\[
+f(x)
+=
+f_L \circ f_{L-1} \circ \cdots \circ f_1(x).
+\]
+
+Main learning:
+* DGPs are more flexible than ordinary single-layer GPs.
+* They can learn more complex nonlinear transformations.
+* They are also harder to fit because latent outputs become inputs to deeper GP layers.
+* Variational methods and inducing points are commonly used to make DGP training computationally feasible.
+
+### 6. Clarified Bayesian-layer status
+
+The HW3 Bayesian-layer requirement is treated as complete in the current HW3 implementation path.
+
+However, the following task is deferred:
+
+* PyTorch-native Bayesian layer implementation for CNNs
+
+This deferred task is optional and can be revisited later as a separate implementation exercise. It is not a blocker for moving forward to Day 19.
+
+Possible future file:
+* `notebooks/optional_torch_bayesian_cnn.ipynb`
+* `src/models/bayesian_layers.py`
+
+Possible future objective:
+* implement BayesianLinear or BayesianConv2d in PyTorch
+* learn \(\mu\) and \(\rho\) for weight distributions
+* sample stochastic weights during forward passes
+* compare class-probability histograms against the current HW3 uncertainty result
+
+---
+
+## Practice Completed Today
+
+### LeetCode 11 — Container With Most Water
+
+Link: https://leetcode.com/problems/container-with-most-water/
+
+Solved using the two-pointer method.
+
+Core idea:
+* The area is determined by width times the shorter height.
+* Since width always decreases as pointers move inward, the only possible way to improve area is to move the pointer at the shorter height.
+* Moving the taller side cannot help because the shorter side remains the bottleneck.
+
+Complexity:
+\[
+O(n)
+\]
+time and
+\[
+O(1)
+\]
+space.
+
+### DeepML — 2x2 Matrix Inverse / Linear Algebra Practice
+
+Reviewed the closed-form inverse of a \(2\times 2\) matrix:
+
+\[
+A=
+\begin{pmatrix}
+a & b \\
+c & d
+\end{pmatrix},
+\qquad
+A^{-1}
+=
+\frac{1}{ad-bc}
+\begin{pmatrix}
+d & -b \\
+-c & a
+\end{pmatrix}.
+\]
+
+Key point:
+* The inverse exists only when
+  \[
+  ad-bc\neq 0.
+  \]
+* This connects directly to GP implementation because covariance matrices must be numerically invertible or stabilized with jitter/noise.
+* In real implementations, solving a linear system is preferred over explicitly computing a matrix inverse.
+
+---
+
+## Main Files Created or Updated Today
+
+* `notebooks/day18_dgp_single_two_layer_tf.ipynb`
+* `notebooks/day18_gp_posterior_from_scratch.ipynb`
+* `reports/hw3_dgp_fit_comparison.md`
+* `reports/day18_gp_to_dgp_notes.md`
+* `artifacts/day18/gp_posterior_rbf.png`
+* `artifacts/day18/gp_posterior_exponential.png`
+* `artifacts/day18/gp_metrics.json`
+* `src/leetcode/day18_container_with_most_water.py`
+* `src/deepml/day18_inverse_2x2.py`
+* `docs/daily_log.md`
+
+If some file names differ locally, the important requirement is that the Day 18 folder contains:
+* a runnable DGP / GP notebook
+* a DGP comparison report
+* saved plots or metrics
+* practice solutions
+* this daily log entry
+
+---
+
+## Core Concepts Learned
+
+### GP vs Gaussian Distribution
+
+A Gaussian distribution is a distribution over a finite-dimensional vector:
+
+\[
+Y\sim Gau(\mu,\Sigma).
+\]
+
+A Gaussian process is a distribution over functions:
+
+\[
+f\sim GP(m,c).
+\]
+
+In practice, the infinite-dimensional GP becomes finite-dimensional because we only compute over observed locations and prediction locations.
+
+### GP Prediction
+
+GP prediction is conditional Gaussian inference. Once the joint Gaussian distribution of observed values and prediction values is specified, the posterior mean and variance follow from standard multivariate normal conditioning.
+
+### Kernel Controls Function Behavior
+
+The kernel determines:
+* smoothness
+* local dependence
+* extrapolation behavior
+* posterior uncertainty
+* numerical conditioning
+
+### DGP as Composition
+
+A DGP is not just a stack of GPs with the same input. The crucial idea is that one layer transforms the representation used by the next layer.
+
+A simplified view:
+
+\[
+x
+\rightarrow
+f_1(x)
+\rightarrow
+f_2(f_1(x))
+\rightarrow
+y.
+\]
+
+This makes DGPs more expressive than ordinary GPs but also harder to train.
+
+### Bayesian Layers
+
+Bayesian layers replace point-estimated weights with distributions over weights. Instead of learning only a weight value, the model learns parameters of a weight distribution, often a mean and variance-related parameter.
+
+This enables repeated stochastic forward passes and uncertainty summaries, such as histograms of predicted class probabilities.
+
+---
+
+## Current Status
+
+The Day 18 objective is complete.
+
+Completed:
+* HW3 Problem 1a–1f
+* HW3 Problem 2
+* GP regression review
+* DGP comparison
+* Day18 practice tasks
+* daily log
+* commit-ready artifacts
+
+Deferred optional improvement:
+* PyTorch-native Bayesian layer implementation for CNN uncertainty modeling
+
+This deferred task should not delay Day 19.
+
+---
+
+## Recommended Commit Message
+
+**`day18: complete hw3 dgp and stochastic neural models`**
