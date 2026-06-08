@@ -782,7 +782,3 @@ Deferred optional improvement:
 This deferred task should not delay Day 19.
 
 ---
-
-## Recommended Commit Message
-
-**`day18: complete hw3 dgp and stochastic neural models`**
